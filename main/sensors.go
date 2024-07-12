@@ -10,12 +10,12 @@ import (
 
 	"stratux/sensors/bme688"
 
-	"github.com/b3nn0/stratux/sensors/bmp388"
+	"github.com/atgrier/stratux/sensors/bmp388"
 
+	"github.com/atgrier/stratux/common"
+	"github.com/atgrier/stratux/sensors"
 	"github.com/b3nn0/goflying/ahrs"
 	"github.com/b3nn0/goflying/ahrsweb"
-	"github.com/b3nn0/stratux/common"
-	"github.com/b3nn0/stratux/sensors"
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/all"
 	"github.com/ricochet2200/go-disk-usage/du"

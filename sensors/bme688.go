@@ -3,7 +3,7 @@ package sensors
 import (
 	"time"
 
-	"github.com/b3nn0/stratux/sensors/bme688"
+	"github.com/atgrier/stratux/sensors/bme688"
 
 	"github.com/kidoman/embd"
 )
