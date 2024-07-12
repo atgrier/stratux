@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # To run this, make sure that this is installed:
 # sudo apt install --yes parted zip unzip zerofree
@@ -35,6 +35,7 @@ cd $TMPDIR
 # wget -c $BASE_IMAGE_URL || die "Download failed"
 # unxz -k $ZIPNAME || die "Extracting image failed"
 wget -c $BASE_IMAGE_URL || echo
+rm 2024-03-15-raspios-bookworm-arm64-lite.img || echo
 unxz -k $ZIPNAME || echo
 
 # Check where in the image the root partition begins:
@@ -78,9 +79,9 @@ cd ../../
 if [ "$(arch)" != "aarch64" ]; then
     wget -P mnt/usr/bin/ https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static
     chmod +x mnt/usr/bin/qemu-aarch64-static
-    unshare -mpfu chroot mnt qemu-aarch64-static -cpu cortex-a72 /bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
+    unshare -mpfu chroot mnt qemu-aarch64-static -cpu cortex-a72 /usr/bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
 else
-    unshare -mpfu chroot mnt /bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
+    unshare -mpfu chroot mnt /usr/bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
 fi
 mkdir -p out
 
