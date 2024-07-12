@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"stratux/sensors/bme688"
+
 	"github.com/b3nn0/stratux/sensors/bmp388"
 
 	"github.com/b3nn0/goflying/ahrs"
@@ -24,6 +26,7 @@ const (
 	calCLimit        = 0.15
 	calDLimit        = 10.0
 
+	// TODO: Modify these.
 	// WHO_AM_I values to differentiate between the different IMUs.
 	MPUREG_WHO_AM_I             = 0x75
 	MPUREG_WHO_AM_I_VAL         = 0x71 // Expected value.
@@ -33,7 +36,8 @@ const (
 	MPUREG_WHO_AM_I_VAL_UNKNOWN = 0x75 // Unknown MPU found on recent batch of gy91 boards see discussion 182
 	ICMREG_WHO_AM_I             = 0x00
 	ICMREG_WHO_AM_I_VAL         = 0xEA             // Expected value.
-	PRESSURE_WHO_AM_I           = bmp388.RegChipId // Expected address for bosch pressure sensors bmpXXX.
+	PRESSURE_WHO_AM_I = 0x77 // BME688
+	// PRESSURE_WHO_AM_I           = bmp388.RegChipId // Expected address for bosch pressure sensors bmpXXX.
 )
 
 var (
@@ -85,12 +89,19 @@ func initPressureSensor() (ok bool) {
 	v, err := i2cbus.ReadByteFromReg(0x76, PRESSURE_WHO_AM_I)
 
 	if err != nil {
-		log.Printf("Error identifying IMU: %s\n", err.Error())
+		log.Printf("Error identifying BMP: %s\n", err.Error())
 		return false
 	}
 	if v == bmp388.ChipId || v == bmp388.ChipId390 {
 		log.Printf("BMP-388 detected")
 		bmp, err := sensors.NewBMP388(&i2cbus)
+		if err == nil {
+			myPressureReader = bmp
+			return true
+		}
+	} else if v == bme688.ChipId {
+		log.Printf("BME-688 detected")
+		bmp, err := sensors.NewBME688(&i2cbus)
 		if err == nil {
 			myPressureReader = bmp
 			return true
