@@ -1,9 +1,10 @@
 package sensors
 
 import (
-	"github.com/b3nn0/stratux/sensors/bmp388"
-	"github.com/kidoman/embd"
 	"time"
+
+	"github.com/atgrier/stratux/sensors/bmp388"
+	"github.com/kidoman/embd"
 )
 
 type BMP388 struct {
