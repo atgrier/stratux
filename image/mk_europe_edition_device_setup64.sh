@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # DO NOT CALL ME DIRECTLY!
 # This script is called by mk_europe_edition.sh via qemu

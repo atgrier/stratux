@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 # To run this, make sure that this is installed:
 # sudo apt install --yes parted zip unzip zerofree
@@ -9,7 +9,8 @@ set -x
 BASE_IMAGE_URL="https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2024-03-15/2024-03-15-raspios-bookworm-arm64-lite.img.xz"
 ZIPNAME="2024-03-15-raspios-bookworm-arm64-lite.img.xz"
 IMGNAME="$(basename $ZIPNAME .xz)"
-TMPDIR="$HOME/stratux-tmp"
+# TMPDIR="$HOME/stratux-tmp"
+TMPDIR="/home/alan/stratux/"
 # REMOTE_ORIGIN=$(git config --get remote.origin.url) # would be nicer, but doesn't work with ssh clone..
 REMOTE_ORIGIN="https://github.com/b3nn0/stratux.git"
 
@@ -31,8 +32,11 @@ mkdir -p $TMPDIR
 cd $TMPDIR
 
 # Download/extract image
-wget -c $BASE_IMAGE_URL || die "Download failed"
-unxz -k $ZIPNAME || die "Extracting image failed"
+# wget -c $BASE_IMAGE_URL || die "Download failed"
+# unxz -k $ZIPNAME || die "Extracting image failed"
+wget -c $BASE_IMAGE_URL || echo
+rm 2024-03-15-raspios-bookworm-arm64-lite.img || echo
+unxz -k $ZIPNAME || echo
 
 # Check where in the image the root partition begins:
 sector=$(fdisk -l $IMGNAME | grep Linux | awk -F ' ' '{print $2}')
@@ -75,9 +79,9 @@ cd ../../
 if [ "$(arch)" != "aarch64" ]; then
     wget -P mnt/usr/bin/ https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static
     chmod +x mnt/usr/bin/qemu-aarch64-static
-    unshare -mpfu chroot mnt qemu-aarch64-static -cpu cortex-a72 /bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
+    unshare -mpfu chroot mnt qemu-aarch64-static -cpu cortex-a72 /usr/bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
 else
-    unshare -mpfu chroot mnt /bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
+    unshare -mpfu chroot mnt /usr/bin/bash -c /root/stratux/image/mk_europe_edition_device_setup64.sh
 fi
 mkdir -p out
 
@@ -112,17 +116,19 @@ cd $TMPDIR
 
 # Rename and zip EU version
 mv $IMGNAME $outname
-zip out/$outname.zip $outname
+# zip out/$outname.zip $outname
 
 
 # Now create US default config into the image and create the eu-us version..
-if [ "$3" == "us" ]; then
-    mount -t vfat -o offset=$bootoffset $outname mnt/ || die "boot-mount failed"
-    echo '{"UAT_Enabled": true,"OGN_Enabled": false,"DeveloperMode": false}' > mnt/stratux.conf
-    umount mnt
-    mv $outname $outname_us
-    zip out/$outname_us.zip $outname_us
-fi
+# if [ "$3" == "us" ]; then
+#     mount -t vfat -o offset=$bootoffset $outname mnt/ || die "boot-mount failed"
+#     echo '{"UAT_Enabled": true,"OGN_Enabled": false,"DeveloperMode": false}' > mnt/stratux.conf
+#     umount mnt
+#     mv $outname $outname_us
+#     zip out/$outname_us.zip $outname_us
+# fi
+mv $outname $outname_us
+zip out/$outname_us.zip $outname_us
 
 
 echo "Final images has been placed into $TMPDIR/out. Please install and test the image."

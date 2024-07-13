@@ -1301,9 +1301,9 @@ var globalStatus status
 
 func defaultSettings() {
 	globalSettings.DarkMode = false
-	globalSettings.UAT_Enabled = false
+	globalSettings.UAT_Enabled = true
 	globalSettings.ES_Enabled = true
-	globalSettings.OGN_Enabled = true
+	globalSettings.OGN_Enabled = false
 	globalSettings.Dump1090Gain = 37.2
 	globalSettings.APRS_Enabled = true
 	globalSettings.GPS_Enabled = true
