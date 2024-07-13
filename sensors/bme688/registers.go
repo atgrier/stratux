@@ -7,8 +7,8 @@ const Address byte = 0x77 // default I2C address
 const (
 	RegChipId    byte = 0xD0 // useful for checking the connection
 	RegCali      byte = 0    // pressure & temperature compensation calibration coefficients, 0x8E thru 0xA0 for pressure, 0x8A 0x8B 0x8C 0xE9 0xEA for temperature
-	RegCal1		 byte = 0xE1 // 14 bytes
-	RegCal2		 byte = 0x8A // 33 Bytes
+	RegCal1	     byte = 0xE1 // 14 bytes
+	RegCal2	     byte = 0x8A // 33 Bytes
 	RegPressXLSB byte = 0x21
 	RegPressLSB  byte = 0x20
 	RegPressMSB  byte = 0x1F
@@ -32,8 +32,8 @@ const (
 // waking the sensor up when the sensor is in forced mode.
 const (
 	Sleep    Mode = 0x00
-	Forced   = 0x01
-	Parallel = 0x02
+	Forced   Mode = 0x01
+	Parallel Mode = 0x02
 )
 
 // Increasing sampling rate increases precision but also the wait time for measurements. The datasheet has a table of
