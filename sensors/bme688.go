@@ -12,6 +12,7 @@ type BME688 struct {
 	sensor      *bme688.BME688
 	temperature float64
 	pressure    float64
+	humidity    float64
 	running     bool
 }
 
@@ -20,6 +21,7 @@ func NewBME688(i2cbus *embd.I2CBus) (*BME688, error) {
 	bme := bme688.BME688{Address: bme688.Address, Config: bme688.Config{
 		Temperature: bme688.Sampling8X,
 		Pressure:    bme688.Sampling2X,
+		Humidity:    bme688.Sampling2X,
 		IIR:         bme688.Coeff0,
 	}, Bus: i2cbus} //new sensor
 	// retry to connect until sensor connected
@@ -52,6 +54,8 @@ func (bme *BME688) run() {
 			bme.pressure = p
 			var t, _ = bme.sensor.ReadTemperature()
 			bme.temperature = t
+			var h, _ = bme.sensor.ReadHumidity()
+			bme.humidity = h
 		}
 
 	}
@@ -77,4 +81,11 @@ func (bme *BME688) Pressure() (float64, error) {
 		return 0, bme688.ErrNotConnected
 	}
 	return bme.pressure, nil
+}
+
+func (bme *BME688) Humidity() (float64, error) {
+	if !bme.running {
+		return 0, bme688.ErrNotConnected
+	}
+	return bme.humidity, nil
 }

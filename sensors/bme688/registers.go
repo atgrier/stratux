@@ -7,14 +7,18 @@ const Address byte = 0x77 // default I2C address
 const (
 	RegChipId    byte = 0xD0 // useful for checking the connection
 	RegCali      byte = 0    // pressure & temperature compensation calibration coefficients, 0x8E thru 0xA0 for pressure, 0x8A 0x8B 0x8C 0xE9 0xEA for temperature
+	RegCal1		 byte = 0xE1 // 14 bytes
+	RegCal2		 byte = 0x8A // 33 Bytes
 	RegPressXLSB byte = 0x21
 	RegPressLSB  byte = 0x20
 	RegPressMSB  byte = 0x1F
 	RegTempXLSB  byte = 0x24
 	RegTempLSB   byte = 0x23
 	RegTempMSB   byte = 0x22
-	RegPwrCtrl   byte = 0x74 // 1:0 measurement mode & pressure/temperature sensor power register
-	RegOSR       byte = 0x74 // oversampling settings register
+	RegHumLSB    byte = 0x26
+	RegHumMSB    byte = 0x25
+	RegOSR       byte = 0x74 // oversampling settings register temperature, pressure, control mode
+	RegHum       byte = 0x72 // oversampling settings register for humidity
 	RegStat      byte = 0x1D // sensor status register
 	RegIIR       byte = 0x75
 )
@@ -27,9 +31,9 @@ const (
 // Set it to forced if you intend to take measurements sporadically and want to save power. The driver will handle
 // waking the sensor up when the sensor is in forced mode.
 const (
-	Parallel Mode = 0x02
-	Forced   Mode = 0x01
 	Sleep    Mode = 0x00
+	Forced   = 0x01
+	Parallel = 0x02
 )
 
 // Increasing sampling rate increases precision but also the wait time for measurements. The datasheet has a table of

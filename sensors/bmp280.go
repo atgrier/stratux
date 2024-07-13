@@ -74,6 +74,10 @@ func (bmp *BMP280) Pressure() (float64, error) {
 	return bmp.data.Pressure, nil
 }
 
+func (bmp *BMP280) Humidity() (float64, error) {
+	return 0, errBMP
+}
+
 // Close stops the measurements of the BMP280
 func (bmp *BMP280) Close() {
 	bmp.running = false

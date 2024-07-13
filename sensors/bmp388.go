@@ -77,3 +77,8 @@ func (bmp *BMP388) Pressure() (float64, error) {
 	}
 	return bmp.pressure, nil
 }
+
+func (bmp *BMP388) Humidity() (float64, error) {
+	return 0, bmp388.ErrNoHumidity
+}
+
