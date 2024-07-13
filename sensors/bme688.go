@@ -1,6 +1,7 @@
 package sensors
 
 import (
+	"log"
 	"time"
 
 	"github.com/atgrier/stratux/sensors/bme688"
@@ -51,10 +52,13 @@ func (bme *BME688) run() {
 	for bme.running {
 		for _ = range clock.C {
 			var p, _ = bme.sensor.ReadPressure()
+			log.Printf("Pressure: %f\n", p)
 			bme.pressure = p
 			var t, _ = bme.sensor.ReadTemperature()
+			log.Printf("Temperature: %f\n", t)
 			bme.temperature = t
 			var h, _ = bme.sensor.ReadHumidity()
+			log.Printf("Humidity: %f\n", h)
 			bme.humidity = h
 		}
 
