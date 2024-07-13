@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/atgrier/stratux/sensors/bme688"
-
 	"github.com/atgrier/stratux/sensors/bmp388"
 
 	"github.com/atgrier/stratux/common"
