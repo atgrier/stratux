@@ -1,4 +1,4 @@
-module github.com/b3nn0/stratux
+module github.com/atgrier/stratux
 
 go 1.20
 

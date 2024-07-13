@@ -16,6 +16,7 @@ var (
 	errCaliRead     = errors.New("bmp388: failed to read calibration coefficient register")
 	errSoftReset    = errors.New("bmp388: failed to perform a soft reset")
 	ErrNotConnected = errors.New("bmp388: not connected")
+	ErrNoHumidity   = errors.New("bmp388: does not provide humidity")
 )
 
 type Oversampling byte

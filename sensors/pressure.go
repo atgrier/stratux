@@ -6,5 +6,6 @@ package sensors
 type PressureReader interface {
 	Temperature() (temp float64, tempError error) // Temperature returns the temperature in degrees C.
 	Pressure() (press float64, pressError error) // Pressure returns the atmospheric pressure in mBar.
+	Humidity() (hum float64, humError error) // Relative humidity in percent
 	Close() // Close stops reading from the sensor.
 }

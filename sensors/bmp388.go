@@ -1,9 +1,10 @@
 package sensors
 
 import (
-	"github.com/b3nn0/stratux/sensors/bmp388"
-	"github.com/kidoman/embd"
 	"time"
+
+	"github.com/atgrier/stratux/sensors/bmp388"
+	"github.com/kidoman/embd"
 )
 
 type BMP388 struct {
@@ -76,3 +77,8 @@ func (bmp *BMP388) Pressure() (float64, error) {
 	}
 	return bmp.pressure, nil
 }
+
+func (bmp *BMP388) Humidity() (float64, error) {
+	return 0, bmp388.ErrNoHumidity
+}
+

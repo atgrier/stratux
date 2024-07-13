@@ -8,12 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/b3nn0/stratux/sensors/bmp388"
+	"github.com/atgrier/stratux/sensors/bme688"
 
+	"github.com/atgrier/stratux/sensors/bmp388"
+
+	"github.com/atgrier/stratux/common"
+	"github.com/atgrier/stratux/sensors"
 	"github.com/b3nn0/goflying/ahrs"
 	"github.com/b3nn0/goflying/ahrsweb"
-	"github.com/b3nn0/stratux/common"
-	"github.com/b3nn0/stratux/sensors"
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/all"
 	"github.com/ricochet2200/go-disk-usage/du"
@@ -33,7 +35,8 @@ const (
 	MPUREG_WHO_AM_I_VAL_UNKNOWN = 0x75 // Unknown MPU found on recent batch of gy91 boards see discussion 182
 	ICMREG_WHO_AM_I             = 0x00
 	ICMREG_WHO_AM_I_VAL         = 0xEA             // Expected value.
-	PRESSURE_WHO_AM_I           = bmp388.RegChipId // Expected address for bosch pressure sensors bmpXXX.
+	PRESSURE_WHO_AM_I_BME688    = bme688.RegChipId
+	PRESSURE_WHO_AM_I_BMP388    = bmp388.RegChipId // Expected address for bosch pressure sensors bmpXXX.
 )
 
 var (
@@ -82,28 +85,40 @@ func pollSensors() {
 
 func initPressureSensor() (ok bool) {
 
-	v, err := i2cbus.ReadByteFromReg(0x76, PRESSURE_WHO_AM_I)
+	v1, err1 := i2cbus.ReadByteFromReg(0x76, PRESSURE_WHO_AM_I_BMP388)
+	v2, err2 := i2cbus.ReadByteFromReg(0x77, PRESSURE_WHO_AM_I_BME688)
 
-	if err != nil {
-		log.Printf("Error identifying BMP: %s\n", err.Error())
-		return false
-	}
-	if v == bmp388.ChipId || v == bmp388.ChipId390 {
+	if v1 == bmp388.ChipId || v1 == bmp388.ChipId390 {
 		log.Printf("BMP-388 detected")
 		bmp, err := sensors.NewBMP388(&i2cbus)
 		if err == nil {
 			myPressureReader = bmp
 			return true
 		}
-	} else {
+		log.Printf("Error identifying BMP: %s\n", err.Error())
+		return false
+	} else if v2 == bme688.ChipId {
+		log.Printf("BME-688 detected")
+		bmp, err := sensors.NewBME688(&i2cbus)
+		if err == nil {
+			myPressureReader = bmp
+			return true
+		}
+		log.Printf("Error identifying BME: %s\n", err.Error())
+		return false
+	} else if v1 != 0xFF {
 		log.Printf("using BMP-280")
 		bmp, err := sensors.NewBMP280(&i2cbus, 100*time.Millisecond)
 		if err == nil {
 			myPressureReader = bmp
 			return true
 		}
+		log.Printf("Error identifying BMP: %s\n", err.Error())
+		return false
 	}
 
+	log.Printf("Error identifying BMP: %s\n", err1.Error())
+	log.Printf("Error identifying BME: %s\n", err2.Error())
 	return false
 }
 
@@ -111,6 +126,7 @@ func tempAndPressureSender() {
 	var (
 		temp     float64
 		press    float64
+		hum		 float64
 		altLast  = -9999.9
 		altitude float64
 		err      error
@@ -129,6 +145,10 @@ func tempAndPressureSender() {
 		temp, err = myPressureReader.Temperature()
 		if err != nil {
 			addSingleSystemErrorf("pressure-sensor-temp-read", "AHRS Error: Couldn't read temperature from sensor: %s", err)
+		}
+		hum, err = myPressureReader.Humidity()
+		if err != nil {
+			addSingleSystemErrorf("pressure-sensor-hum-read", "AHRS Error: Couldn't read humidity from sensor: %s", err)
 		}
 		press, err = myPressureReader.Pressure()
 		if press == 0 || err != nil {
@@ -160,6 +180,7 @@ func tempAndPressureSender() {
 		mySituation.muBaro.Lock()
 		mySituation.BaroLastMeasurementTime = stratuxClock.Time
 		mySituation.BaroTemperature = float32(temp)
+		mySituation.BaroHumidity = float32(hum)
 		mySituation.BaroPressureAltitude = float32(altitude)
 		if altLast < -2000 {
 			altLast = altitude // Initialize

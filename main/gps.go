@@ -28,7 +28,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/b3nn0/stratux/common"
+	"github.com/atgrier/stratux/common"
 )
 
 const (
@@ -96,6 +96,7 @@ type SituationData struct {
 	// From pressure sensor.
 	muBaro                  *sync.Mutex
 	BaroTemperature         float32
+	BaroHumidity            float32
 	BaroPressureAltitude    float32
 	BaroVerticalSpeed       float32
 	BaroLastMeasurementTime time.Time
