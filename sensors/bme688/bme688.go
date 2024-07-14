@@ -75,11 +75,11 @@ func (d *BME688) Configure(config Config) (err error) {
 	}
 
 	// Configure the oversampling, output data rate, and iir filter coefficient settings
-	err = d.writeRegister(RegOSR, byte(d.Config.Pressure<<2|d.Config.Temperature<<5)|byte(d.Config.Mode))
-	err = d.writeRegister(RegHum, byte(d.Config.Humidity))
-	err = d.writeRegister(RegIIR, byte(d.Config.IIR<<2))
+	err1 := d.writeRegister(RegOSR, byte(d.Config.Pressure<<2|d.Config.Temperature<<5)|byte(d.Config.Mode))
+	err2 := d.writeRegister(RegHum, byte(d.Config.Humidity))
+	err3 := d.writeRegister(RegIIR, byte(d.Config.IIR<<2))
 
-	if err != nil {
+	if err1 != nil || err2 != nil || err3 != nil {
 		return errConfigWrite
 	}
 
@@ -126,7 +126,7 @@ func (d *BME688) tlinCompensate() (int64, error) {
 	}
 
 	// pulled from C driver: https://github.com/BoschSensortec/BME3-Sensor-API/blob/master/bme3.c
-	partialData1 := (rawTemp >> 3) - (int64(d.cali.t1) << 1)
+	partialData1 := (int64(rawTemp) >> 3) - (int64(d.cali.t1) << 1)
 	partialData2 := (partialData1 * int64(d.cali.t2)) >> 11
 	partialData3 := ((((partialData1 >> 1) * (partialData1 >> 1)) >> 12) * (int64(d.cali.t3) << 4)) >> 14
 	return partialData2 + partialData3, nil
@@ -161,7 +161,7 @@ func (d *BME688) ReadPressure() (float64, error) {
 	partialData1 = (((((partialData1 >> 2) * (partialData1 >> 2)) >> 13) * (int64(d.cali.p3) << 5)) >> 3) + ((int64(d.cali.p2) * partialData1) >> 1)
 	partialData1 = partialData1 >> 18
 	partialData1 = ((32768 + partialData1) * int64(d.cali.p1)) >> 15
-	compPress := 1048576 - rawPress
+	compPress := 1048576 - int64(rawPress)
 	compPress = (compPress - (partialData2 >> 12)) * 3125
 	if compPress >= (1 << 30) {
 		compPress = (compPress / partialData1) << 1
@@ -185,7 +185,7 @@ func (d *BME688) ReadHumidity() (float64, error) {
 	}
 
 	tempScaled := ((tlin * 5) + 128) >> 8
-	partialData1 := rawHum - (int64(d.cali.h1) << 4) - (((tempScaled * int64(d.cali.h3)) / 100) >> 1)
+	partialData1 := int64(rawHum) - (int64(d.cali.h1) << 4) - (((tempScaled * int64(d.cali.h3)) / 100) >> 1)
 	partialData2 := (int64(d.cali.h2) * (((tempScaled * int64(d.cali.h4)) / 100) + (((tempScaled * ((tempScaled * int64(d.cali.h5)) / 100)) >> 6) / 100) + (1 << 14))) >> 10
 	partialData3 := partialData1 * partialData2
 	partialData4 := ((int64(d.cali.h6) << 7) + (tempScaled * int64(d.cali.h7) / 100)) >> 4
@@ -207,7 +207,7 @@ func (d *BME688) SetMode(mode Mode) error {
 	d.Config.Mode = mode
 	return d.writeRegister(RegOSR, byte(d.Config.Pressure<<2|d.Config.Temperature<<5)|byte(d.Config.Mode))
 }
-func (d *BME688) readTempPressData(msb byte, lsb byte, xlsb byte) (data int64, err error) {
+func (d *BME688) readTempPressData(msb byte, lsb byte, xlsb byte) (data uint32, err error) {
 	if !d.Connected() {
 		return 0, ErrNotConnected
 	}
@@ -225,11 +225,11 @@ func (d *BME688) readTempPressData(msb byte, lsb byte, xlsb byte) (data int64, e
 	if err != nil {
 		return
 	}
-	data = int64(bytes[0])<<12 | int64(bytes[1])<<4 | int64(bytes[2])>>4
+	data = uint32(bytes[0])<<12 | uint32(bytes[1])<<4 | uint32(bytes[2])>>4
 	return
 }
 
-func (d *BME688) readHumidityData(msb byte, lsb byte) (data int64, err error) {
+func (d *BME688) readHumidityData(msb byte, lsb byte) (data uint16, err error) {
 	if !d.Connected() {
 		return 0, ErrNotConnected
 	}
@@ -247,7 +247,7 @@ func (d *BME688) readHumidityData(msb byte, lsb byte) (data int64, err error) {
 	if err != nil {
 		return
 	}
-	data = int64(bytes[0])<<8 | int64(bytes[1])
+	data = uint16(bytes[0])<<8 | uint16(bytes[1])
 	return
 }
 
