@@ -109,7 +109,7 @@ func (d *BME688) Configure(config Config) (err error) {
 	d.cali.p9 = int16(buffer2[31])<<8 | int16(buffer2[30])
 	d.cali.p10 = uint8(buffer2[32])
 
-	d.cali.h1 = uint16(buffer1[2])<<4 | (uint16(buffer1[1])&0x0F)
+	d.cali.h1 = uint16(buffer1[2])<<4 | (uint16(buffer1[1]) & 0x0F)
 	d.cali.h2 = uint16(buffer1[0])<<4 | uint16(buffer1[1])>>4
 	d.cali.h3 = int8(buffer1[3])
 	d.cali.h4 = int8(buffer1[4])
@@ -126,9 +126,9 @@ func (d *BME688) tlinCompensate() (int64, error) {
 	}
 
 	// pulled from C driver: https://github.com/BoschSensortec/BME3-Sensor-API/blob/master/bme3.c
-	partialData1 := (rawTemp>>3) - (int64(d.cali.t1)<<1)
-	partialData2 := partialData1 * (int64(d.cali.t2)>>11)
-	partialData3 := ((((partialData1>>1) * (partialData1>>1))>>12) * (int64(d.cali.t3)<<4))>>14
+	partialData1 := (rawTemp >> 3) - (int64(d.cali.t1) << 1)
+	partialData2 := (partialData1 * int64(d.cali.t2)) >> 11
+	partialData3 := ((((partialData1 >> 1) * (partialData1 >> 1)) >> 12) * (int64(d.cali.t3) << 4)) >> 14
 	return partialData2 + partialData3, nil
 
 }
@@ -139,7 +139,7 @@ func (d *BME688) ReadTemperature() (float64, error) {
 		return 0, err
 	}
 
-	temp := ((tlin * 5) + 128)>>8
+	temp := ((tlin * 5) + 128) >> 8
 	return float64(temp) / 100, nil
 }
 func (d *BME688) ReadPressure() (float64, error) {
@@ -154,24 +154,24 @@ func (d *BME688) ReadPressure() (float64, error) {
 	}
 
 	// code pulled from bme688 C driver: https://github.com/BoschSensortec/BME3-Sensor-API/blob/master/bme3.c
-	partialData1 := (tlin>>1) - 64000
-	partialData2 := ((((partialData1>>2) * (partialData1>>2))>>11) * int64(d.cali.p6)) >> 2
-	partialData2 = partialData2 + ((partialData1 * int64(d.cali.p5))<<1)
-	partialData2 = (partialData2>>2) + (int64(d.cali.p4)<<16)
-	partialData1 = (((((partialData1>>2) * (partialData1>>2))>>13) * (int64(d.cali.p3)<<5))>>3) + ((int64(d.cali.p2) * partialData1)>>1)
-	partialData1 = partialData1>>18
-	partialData1 = ((32768 + partialData1) * int64(d.cali.p1))>>15
+	partialData1 := (tlin >> 1) - 64000
+	partialData2 := ((((partialData1 >> 2) * (partialData1 >> 2)) >> 11) * int64(d.cali.p6)) >> 2
+	partialData2 = partialData2 + ((partialData1 * int64(d.cali.p5)) << 1)
+	partialData2 = (partialData2 >> 2) + (int64(d.cali.p4) << 16)
+	partialData1 = (((((partialData1 >> 2) * (partialData1 >> 2)) >> 13) * (int64(d.cali.p3) << 5)) >> 3) + ((int64(d.cali.p2) * partialData1) >> 1)
+	partialData1 = partialData1 >> 18
+	partialData1 = ((32768 + partialData1) * int64(d.cali.p1)) >> 15
 	compPress := 1048576 - rawPress
-	compPress = (compPress - (partialData2>>12)) * 3125
-	if compPress >= (1<<30) {
+	compPress = (compPress - (partialData2 >> 12)) * 3125
+	if compPress >= (1 << 30) {
 		compPress = (compPress / partialData1) << 1
 	} else {
-		compPress = (compPress<<1) / partialData1
+		compPress = (compPress << 1) / partialData1
 	}
-	partialData1 = (int64(d.cali.p9) * (((compPress>>3) * (compPress>>3))>>13))>>12
-	partialData2 = ((compPress>>2) * int64(d.cali.p8))>>13
-	partialData3 := ((compPress>>8) * (compPress>>8) * (compPress>>8) * int64(d.cali.p10))>>17
-	compPress = compPress + ((partialData1 + partialData2 + partialData3 + (int64(d.cali.p7)<<7))>>4)
+	partialData1 = (int64(d.cali.p9) * (((compPress >> 3) * (compPress >> 3)) >> 13)) >> 12
+	partialData2 = ((compPress >> 2) * int64(d.cali.p8)) >> 13
+	partialData3 := ((compPress >> 8) * (compPress >> 8) * (compPress >> 8) * int64(d.cali.p10)) >> 17
+	compPress = compPress + ((partialData1 + partialData2 + partialData3 + (int64(d.cali.p7) << 7)) >> 4)
 	return float64(compPress) / 10000, nil
 }
 func (d *BME688) ReadHumidity() (float64, error) {
@@ -184,15 +184,15 @@ func (d *BME688) ReadHumidity() (float64, error) {
 		return 0, err
 	}
 
-	tempScaled := ((tlin * 5) + 128)>>8
-	partialData1 := rawHum - (int64(d.cali.h1)<<4) - (((tempScaled * int64(d.cali.h3)) / 100)>>1)
-	partialData2 := (int64(d.cali.h2) * (((tempScaled * int64(d.cali.h4)) / 100) + (((tempScaled * ((tempScaled * int64(d.cali.h5)) / 100))>>6) / 100) + (1<<14)))>>10
+	tempScaled := ((tlin * 5) + 128) >> 8
+	partialData1 := rawHum - (int64(d.cali.h1) << 4) - (((tempScaled * int64(d.cali.h3)) / 100) >> 1)
+	partialData2 := (int64(d.cali.h2) * (((tempScaled * int64(d.cali.h4)) / 100) + (((tempScaled * ((tempScaled * int64(d.cali.h5)) / 100)) >> 6) / 100) + (1 << 14))) >> 10
 	partialData3 := partialData1 * partialData2
-	partialData4 := ((int64(d.cali.h6)<<7) + ((tempScaled * int64(d.cali.h7) / 100)))>>4
-	partialData5 := ((partialData3>>14) * (partialData3>>14))>>10
-	partialData6 := (partialData4 * partialData5)>>1
-	compHum := (partialData3 + partialData6)>>12
-	compHum = (((partialData3 + partialData6)>>10) * 1000)>>12
+	partialData4 := ((int64(d.cali.h6) << 7) + (tempScaled * int64(d.cali.h7) / 100)) >> 4
+	partialData5 := ((partialData3 >> 14) * (partialData3 >> 14)) >> 10
+	partialData6 := (partialData4 * partialData5) >> 1
+	compHum := (partialData3 + partialData6) >> 12
+	compHum = (((partialData3 + partialData6) >> 10) * 1000) >> 12
 	if compHum > 100000 {
 		compHum = 100000
 	} else if compHum < 0 {
