@@ -48,9 +48,10 @@ func NewBME688(i2cbus *embd.I2CBus) (*BME688, error) {
 }
 func (bme *BME688) run() {
 	bme.running = true
-	clock := time.NewTicker(100 * time.Millisecond)
+	clock := time.NewTicker(1000 * time.Millisecond)
 	for bme.running {
 		for _ = range clock.C {
+			log.Printf("a")
 			var p, _ = bme.sensor.ReadPressure()
 			log.Printf("Pressure: %f\n", p)
 			bme.pressure = p
