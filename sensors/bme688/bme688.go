@@ -85,37 +85,37 @@ func (d *BME688) Configure(config Config) (err error) {
 
 	// Reading the builtin calibration coefficients and parsing them per the datasheet. The compensation formula given
 	// in the datasheet is implemented in floating point
-	buffer1, err := d.readRegister(RegCal1, 14)
+	buffer1, err := d.readRegister(RegCal1, 14) // starts at 0xE1
 	if err != nil {
 		return errCaliRead
 	}
-	buffer2, err := d.readRegister(RegCal2, 33)
+	buffer2, err := d.readRegister(RegCal2, 23) // starts at 0x8A
 	if err != nil {
 		return errCaliRead
 	}
 
-	d.cali.t1 = uint16(buffer1[9])<<8 | uint16(buffer1[8])
-	d.cali.t2 = int16(buffer2[1])<<8 | int16(buffer2[0])
-	d.cali.t3 = int8(buffer2[3])
+	d.cali.t1 = uint16(buffer1[9])<<8 | uint16(buffer1[8]) // 0xEA (MSB), 0xE9 (LSB)
+	d.cali.t2 = int16(buffer2[1])<<8 | int16(buffer2[0])   // 0x8B (MSB), 0x8A (LSB)
+	d.cali.t3 = int8(buffer2[2])                           // 0x8C
 
-	d.cali.p1 = uint16(buffer2[15])<<8 | uint16(buffer2[14])
-	d.cali.p2 = int16(buffer2[17])<<8 | int16(buffer2[16])
-	d.cali.p3 = int8(buffer2[18])
-	d.cali.p4 = int16(buffer2[21])<<8 | int16(buffer2[20])
-	d.cali.p5 = int16(buffer2[23])<<8 | int16(buffer2[22])
-	d.cali.p6 = int8(buffer2[25])
-	d.cali.p7 = int8(buffer2[24])
-	d.cali.p8 = int16(buffer2[29])<<8 | int16(buffer2[28])
-	d.cali.p9 = int16(buffer2[31])<<8 | int16(buffer2[30])
-	d.cali.p10 = uint8(buffer2[32])
+	d.cali.p1 = uint16(buffer2[5])<<8 | uint16(buffer2[4]) // 0x8F (MSB), 0x 08E(LSB)
+	d.cali.p2 = int16(buffer2[7])<<8 | int16(buffer2[6])   // 0x91 (MSB), 0x90 (LSB)
+	d.cali.p3 = int8(buffer2[8])                           // 0x92
+	d.cali.p4 = int16(buffer2[11])<<8 | int16(buffer2[10]) // 0x95 (MSB), 0x94 (LSB)
+	d.cali.p5 = int16(buffer2[13])<<8 | int16(buffer2[12]) // 0x97 (MSB), 0x96 (LSB)
+	d.cali.p6 = int8(buffer2[15])                          // 0x99
+	d.cali.p7 = int8(buffer2[14])                          // 0x98
+	d.cali.p8 = int16(buffer2[19])<<8 | int16(buffer2[18]) // 0x9D (MSB), 0x9C (LSB)
+	d.cali.p9 = int16(buffer2[21])<<8 | int16(buffer2[20]) // 0x9F (MSB), 0x9E (LSB)
+	d.cali.p10 = uint8(buffer2[22])                        // 0xA0
 
-	d.cali.h1 = uint16(buffer1[2])<<4 | (uint16(buffer1[1]) & 0x0F)
-	d.cali.h2 = uint16(buffer1[0])<<4 | uint16(buffer1[1])>>4
-	d.cali.h3 = int8(buffer1[3])
-	d.cali.h4 = int8(buffer1[4])
-	d.cali.h5 = int8(buffer1[5])
-	d.cali.h6 = uint8(buffer1[6])
-	d.cali.h7 = int8(buffer1[7])
+	d.cali.h1 = uint16(buffer1[2])<<4 | (uint16(buffer1[1]) & 0x0F) // 0xE3 (MSB), 0xE2<3:0> (LSB)
+	d.cali.h2 = uint16(buffer1[0])<<4 | uint16(buffer1[1])>>4       // 0xE1 (MSB), 0xE2<7:4> (LSB)
+	d.cali.h3 = int8(buffer1[3])                                    // 0xE4
+	d.cali.h4 = int8(buffer1[4])                                    // 0xE5
+	d.cali.h5 = int8(buffer1[5])                                    // 0xE6
+	d.cali.h6 = uint8(buffer1[6])                                   // 0xE7
+	d.cali.h7 = int8(buffer1[7])                                    // 0xE8
 
 	return nil
 }
@@ -140,7 +140,7 @@ func (d *BME688) ReadTemperature() (float64, error) {
 	}
 
 	temp := ((tlin * 5) + 128) >> 8
-	return float64(temp) / 100, nil
+	return float64(temp), nil
 }
 func (d *BME688) ReadPressure() (float64, error) {
 
@@ -172,7 +172,7 @@ func (d *BME688) ReadPressure() (float64, error) {
 	partialData2 = ((compPress >> 2) * int64(d.cali.p8)) >> 13
 	partialData3 := ((compPress >> 8) * (compPress >> 8) * (compPress >> 8) * int64(d.cali.p10)) >> 17
 	compPress = compPress + ((partialData1 + partialData2 + partialData3 + (int64(d.cali.p7) << 7)) >> 4)
-	return float64(compPress) / 10000, nil
+	return float64(compPress) / 10e5 * 10e2, nil
 }
 func (d *BME688) ReadHumidity() (float64, error) {
 	tlin, err := d.tlinCompensate()
