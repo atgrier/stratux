@@ -140,7 +140,7 @@ func (d *BME688) ReadTemperature() (float64, error) {
 	}
 
 	temp := ((tlin * 5) + 128) >> 8
-	return float64(temp), nil
+	return float64(temp) / 100, nil
 }
 func (d *BME688) ReadPressure() (float64, error) {
 
@@ -172,7 +172,7 @@ func (d *BME688) ReadPressure() (float64, error) {
 	partialData2 = ((compPress >> 2) * int64(d.cali.p8)) >> 13
 	partialData3 := ((compPress >> 8) * (compPress >> 8) * (compPress >> 8) * int64(d.cali.p10)) >> 17
 	compPress = compPress + ((partialData1 + partialData2 + partialData3 + (int64(d.cali.p7) << 7)) >> 4)
-	return float64(compPress), nil
+	return float64(compPress) / 100, nil
 }
 func (d *BME688) ReadHumidity() (float64, error) {
 	tlin, err := d.tlinCompensate()
