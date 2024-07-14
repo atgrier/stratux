@@ -172,7 +172,7 @@ func (d *BME688) ReadPressure() (float64, error) {
 	partialData2 = ((compPress >> 2) * int64(d.cali.p8)) >> 13
 	partialData3 := ((compPress >> 8) * (compPress >> 8) * (compPress >> 8) * int64(d.cali.p10)) >> 17
 	compPress = compPress + ((partialData1 + partialData2 + partialData3 + (int64(d.cali.p7) << 7)) >> 4)
-	return float64(compPress) / 10e5 * 10e2, nil
+	return float64(compPress), nil
 }
 func (d *BME688) ReadHumidity() (float64, error) {
 	tlin, err := d.tlinCompensate()
@@ -191,8 +191,7 @@ func (d *BME688) ReadHumidity() (float64, error) {
 	partialData4 := ((int64(d.cali.h6) << 7) + (tempScaled * int64(d.cali.h7) / 100)) >> 4
 	partialData5 := ((partialData3 >> 14) * (partialData3 >> 14)) >> 10
 	partialData6 := (partialData4 * partialData5) >> 1
-	compHum := (partialData3 + partialData6) >> 12
-	compHum = (((partialData3 + partialData6) >> 10) * 1000) >> 12
+	compHum := (((partialData3 + partialData6) >> 10) * 1000) >> 12
 	if compHum > 100000 {
 		compHum = 100000
 	} else if compHum < 0 {
